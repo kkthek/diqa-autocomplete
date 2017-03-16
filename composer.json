@@ -1,0 +1,30 @@
+{
+	"name": "diqa/autocomplete",
+	"type": "mediawiki-extension",
+	"description": "Enhanced autocomplete for SemanticForms",
+	"keywords": [
+		"DIQA", "Autocomplete", "SemanticForms", "SMW"
+	],
+	
+	"license": "GPL v2.0",
+	"authors": [
+		{
+			"name": "Kai Kühn"
+			
+		}
+	],
+	"require": {
+		"mediawiki/semantic-media-wiki": "~2.4",
+		"diqa/util": "~1.0"
+	},
+	
+	"autoload": {
+		"psr-4": {
+			"DIQA\\": "src/"
+		},
+		"files" : [
+			"DIQAautocomplete.php"
+		]
+		
+	}
+}
