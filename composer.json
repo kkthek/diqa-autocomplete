@@ -15,7 +15,7 @@
 	],
 	"require": {
 		"mediawiki/semantic-media-wiki": "~2.4",
-		"diqa/util": "~1.0"
+		"diqa/util": "~0.1"
 	},
 	
 	"autoload": {
