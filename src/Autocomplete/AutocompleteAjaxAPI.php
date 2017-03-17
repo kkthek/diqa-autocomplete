@@ -43,6 +43,10 @@ class AutocompleteAjaxAPI extends \ApiBase {
 			return;
 		}
 		
+		if ($substr == '*') {
+			$substr = '';
+		}
+		
 		if (strlen ( $category ) != 0) {
 			$values = $this->getTitleBy ( "[[Category:$category]]", $property, $substr );
 		} else if (strlen ( $concept ) != 0) {
