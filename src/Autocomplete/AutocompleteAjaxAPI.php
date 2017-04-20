@@ -69,7 +69,7 @@ class AutocompleteAjaxAPI extends \ApiBase {
 		// Set top-level elements.
 		$result = $this->getResult ();
 		$result->setIndexedTagName ( $values, 'p' );
-		$result->addValue ( null, 'sfautocomplete', $values );
+		$result->addValue ( null, 'pfautocomplete', $values );
 	}
 	protected function getAllowedParams() {
 		return array (
@@ -79,6 +79,7 @@ class AutocompleteAjaxAPI extends \ApiBase {
 				'category' => null,
 				'concept' => null, 
 				'schema' => null,
+				'_' => null,
 		);
 	}
 	protected function getParamDescription() {

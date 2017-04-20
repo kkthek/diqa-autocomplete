@@ -49,7 +49,7 @@ $wgResourceModules['ext.autocomplete.core'] = array(
 		'localBasePath' => $dir,
 		'remoteExtPath' => 'DIQAautocomplete',
 		'scripts' => array('scripts/ac-extensions.js'),
-		'dependencies' => array( 'ext.semanticforms.main' )
+		'dependencies' => array( 'ext.pageforms.main' )
 );
 $GLOBALS['wgAPIModules']['diqa_autocomplete'] = 'DIQA\Autocomplete\AutocompleteAjaxAPI';
 

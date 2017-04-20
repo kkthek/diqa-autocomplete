@@ -17,7 +17,8 @@
 	};
 
 /* extending jQuery functions for custom highlighting */
-$.ui.autocomplete.prototype._renderItem = function( ul, item) {
+window.XPF = window.XPF || {};
+window.XPF.autocompleteRenderItem = function( ul, item) {
 
 	var delim = this.element.context.delimiter;
 	var term;
@@ -40,14 +41,14 @@ $.ui.autocomplete.prototype._renderItem = function( ul, item) {
 		.appendTo( ul );
 };
 
-sf.select2.base.prototype.formatResult = function(value, container, query) {
+window.XPF.select2FormatResult = function(value, container, query) {
 	var term = query.term;
 	var text = value.text;
 	var image = value.image;
 	var description = showExtraAutocompleteHints(value.data);
 	var markup = "";
 
-	var text_highlight = sf.select2.base.prototype.textHighlight;
+	var text_highlight = pf.select2.base.prototype.textHighlight;
 	if ( text !== undefined && image !== undefined && description !== undefined ) {
 		markup += "<table class='sf-select2-result'> <tr>";
 		markup += "<td class='sf-result-thumbnail'><img src='" + image + "'/></td>";
