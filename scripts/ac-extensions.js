@@ -8,7 +8,7 @@
 		var span = $('<span>')
 			.addClass('diqa-ac-hint');
 		
-		if (extraData.category && extraData.category != '') {
+		if (extraData && extraData.category && extraData.category != '') {
 			span.append(" ["+extraData.category+"]");
 		}
 		
