@@ -89,7 +89,8 @@ class AutocompleteAjaxAPI extends \ApiBase {
 				'property' => 'Semantic property for which to search values',
 				'category' => 'Category for which to search values',
 				'concept' => 'Concept for which to search values', 
-				'schema' => 'Return schema elements'
+				'schema' => 'Return schema elements',
+				'_' => '',
 		);
 	}
 	protected function getDescription() {
