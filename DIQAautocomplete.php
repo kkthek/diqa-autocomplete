@@ -32,7 +32,7 @@ global $wgResourceModules;
 // register extension
 $wgExtensionCredits[ 'odb' ][] = array(
 	'path' => __FILE__,
-	'name' => 'DIQA Autocomplete',
+	'name' => 'Autocomplete',
 	'author' => array( 'DIQA Projektmanagement GmbH' ),
 	'license-name' => 'GPL-2.0+',
 	'url' => 'http://www.diqa-pm.com',
