@@ -18,14 +18,14 @@
 
 /* extending jQuery functions for custom highlighting */
 window.XPF = window.XPF || {};
-window.XPF.autocompleteRenderItem = function( ul, item) {
+window.XPF.autocompleteRenderItem = function(that, ul, item) {
 
-	var delim = this.element.context.delimiter;
+	var delim = that.element.context.delimiter; 
 	var term;
 	if ( delim === null ) {
-		term = this.term;
+		term = that.term;
 	} else {
-		term = this.term.split( delim ).pop();
+		term = that.term.split( delim ).pop();
 	}
 	var re = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + term.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1") + ")(?![^<>]*>)(?![^&;]+;)", "gi");
 	var loc = item.label.search(re);
