@@ -48,7 +48,12 @@ class AutocompleteAjaxAPI extends \ApiBase {
 		}
 		
 		if (strlen ( $category ) != 0) {
-			$values = $this->getTitleBy ( "[[Category:$category]]", $property, $substr );
+			$categories = explode(",", $category);
+			$queries = array_map(function($c) {
+				$c = trim($c); 
+				return "[[Category:$c]]"; 
+			}, $categories);
+			$values = $this->getTitleBy ( implode(' OR ', $queries), $property, $substr );
 		} else if (strlen ( $concept ) != 0) {
 			$values = $this->getTitleBy ( "[[Concept:$concept]]", $property, $substr );
 		} else if (strlen ( $schema ) != 0) {
@@ -87,7 +92,7 @@ class AutocompleteAjaxAPI extends \ApiBase {
 				
 				'substr' => 'Search substring',
 				'property' => 'Semantic property for which to search values',
-				'category' => 'Category for which to search values',
+				'category' => 'Categories for which to search values (comma-separated)',
 				'concept' => 'Concept for which to search values', 
 				'schema' => 'Return schema elements',
 				'_' => '',
@@ -122,9 +127,22 @@ class AutocompleteAjaxAPI extends \ApiBase {
 			
 			$mwTitle = \Title::newFromText ( $pageID );
 			
+			$extension = null;
+			$href = null;
+			if ($mwTitle->getNamespace() == NS_FILE) {
+				$file = wfLocalFile($mwTitle);
+				$extension = $file->getExtension();
+				$href = $file->getFullUrl();
+			}
+			
 			$results [] = [ 
 					'title' => $pageTitle,
-					'data' => [ 'category' => $catTitle, 'fullTitle' => $mwTitle->getPrefixedText()],
+					'data' => [ 
+							'category' => $catTitle, 
+							'fullTitle' => $mwTitle->getPrefixedText(), 
+							'file' => [ 
+								'extension' => $extension, 
+								'href' => $href  ] ],
 					'id' => $mwTitle->getText (),
 					'ns' => $mwTitle->getNamespace () 
 			];
