@@ -52,7 +52,7 @@ $wgResourceModules['ext.autocomplete.core'] = array(
 		'dependencies' => array( 'ext.pageforms.main' )
 );
 $GLOBALS['wgAPIModules']['diqa_autocomplete'] = 'DIQA\Autocomplete\AutocompleteAjaxAPI';
-
+$wgHooks['pf_autocomplete_external'][] = 'DIQA\Autocomplete\AutocompleteAjaxAPI::handlePFAutoCompleteHook';
 /**
  * Initializations for DIQAautocomplete
  */
