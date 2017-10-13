@@ -6,12 +6,9 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 class Autocomplete {
 
     public static function init() {
-        
         // check login
-        $groups = Auth::session();
-        if (count($groups) === 0) {
-            // if not member of a group
-            // return empty result
+        if(!Auth::isLoggedIn()) {
+            // if not logged in return empty result
             $o = new \stdClass();
             $o->pfautocomplete = [];
             echo json_encode($o);
@@ -20,11 +17,11 @@ class Autocomplete {
         
         // parse request
         $params = self::parseRequest($_SERVER['REQUEST_URI']);
-        
+
         // request AC data
         self::initializeEloquent();
         $values = self::handleRequest($params);
-        
+
         // serialize to JSON
         $o = new \stdClass();
         $o->pfautocomplete = $values;
@@ -37,16 +34,16 @@ class Autocomplete {
     private static function initializeEloquent() {
         $capsule = new Capsule();
         
-        global $wgDBname, $wgDBuser, $wgDBpassword;
+        global $wgDBserver, $wgDBname, $wgDBuser, $wgDBpassword, $wgDBprefix;
         $capsule->addConnection([
             'driver' => 'mysql',
-            'host' => 'localhost',
+            'host' => $wgDBserver,
             'database' => $wgDBname,
             'username' => $wgDBuser,
             'password' => $wgDBpassword,
             'charset' => 'utf8',
             'collation' => 'utf8_unicode_ci',
-            'prefix' => ''
+            'prefix' => $wgDBprefix
         ]);
         
         // Make this Capsule instance available globally via static methods... (optional)
@@ -121,6 +118,7 @@ class Autocomplete {
             $titleLowercasePropertyID->smw_id,
             $titlePropertyID->smw_id
         ];
+        
         $categories = explode('||', $params['category']);
         $categoryConstraint = [];
         foreach ($categories as $c) {
@@ -133,7 +131,7 @@ class Autocomplete {
         $sqlParameters[] = "%$substr%";
         
         // run SQL query
-        $pages = Capsule::select('SELECT IF(title.o_blob IS NULL, title.o_hash, title.o_blob) AS title,
+        $sqlQuery = 'SELECT IF(title.o_blob IS NULL, title.o_hash, title.o_blob) AS title,
                         subject.smw_title AS mw_title,
                         subject.smw_namespace AS mw_namespace,
                         object.smw_title AS category_title
@@ -143,7 +141,9 @@ class Autocomplete {
                  JOIN smw_di_blob title_filter ON subject.smw_id = title_filter.s_id AND title_filter.p_id = ?
                  JOIN smw_di_blob title ON subject.smw_id = title.s_id AND title.p_id = ?
                  WHERE (' . $categoryConstraintSQL . ')
-                 AND ( title_filter.o_hash LIKE ? OR title_filter.o_blob LIKE ?)', $sqlParameters);
+                 AND ( title_filter.o_hash LIKE ? OR title_filter.o_blob LIKE ?)';
+        
+        $pages = Capsule::select($sqlQuery, $sqlParameters);
         
         $results = [];
         foreach ($pages as $row) {

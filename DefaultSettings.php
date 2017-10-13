@@ -8,6 +8,7 @@ $wgPageFormsAutocompletionURLs['autocomplete-TEST'] =  "$path=TEST_CATEGORY";
  
 global $wgFormattedNamespaces;
 $wgFormattedNamespaces[0] = '';
+$wgFormattedNamespaces[6] = 'Datei';
 $wgFormattedNamespaces[10] = 'Vorlage';
 $wgFormattedNamespaces[14] = 'Kategorie';
 $wgFormattedNamespaces[102] = 'Atttribut';
