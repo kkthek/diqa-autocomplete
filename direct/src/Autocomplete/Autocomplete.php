@@ -112,6 +112,9 @@ class Autocomplete {
             ->first();
         
         $substr = strtolower($params['substr']);
+        if ($substr == '*') {
+            $substr = '';
+        }
         
         // build SQL parameters
         $sqlParameters = [
