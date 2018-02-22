@@ -99,6 +99,16 @@ class Autocomplete {
 
     private static function handleRequest($params) {
         global $wgFormattedNamespaces;
+        if (!isset($wgFormattedNamespaces)) {
+            $wgFormattedNamespaces = [];
+        }
+        
+        // set defaults
+        $wgFormattedNamespaces[0] = '';
+        $wgFormattedNamespaces[6] = 'Datei';
+        $wgFormattedNamespaces[10] = 'Vorlage';
+        $wgFormattedNamespaces[14] = 'Kategorie';
+        $wgFormattedNamespaces[102] = 'Atttribut';
         
         $titleLowercasePropertyID = Capsule::table('smw_object_ids')->select('smw_id')
             ->where('smw_title', $params['property'] . '_lowercase')

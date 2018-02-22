@@ -1,30 +1,49 @@
 
 This is an external auto-complete endpoint for PageForms extension. It accesses the DB directly and is very fast.
 
-It requires the following configuration in MWROOT/env.php
+It requires the following configuration in MWROOT/env.json
 
 #############
 #
 # Sample
 #
-global $wgDBname, $wgDBuser, $wgDBpassword;
-$wgDBname='wima_wiki';
-$wgDBuser = 'root';
-$wgDBpassword = 'vagrant';
 
-global $wgServerHTTP, $wgScriptPath;
-$wgServerHTTP = 'http://wimawiki.local';
-$wgScriptPath='/mediawiki';
+ "MW": {
+        "wgDBuser": "root",
+        "wgDBpassword": "....",
+      
+        "wgServer": "https:\/\/demo.qm-wiki.net",
+       
+        "wgScriptPath": "\/mediawiki",
+     
+        "wgDBname": "wima_wiki"
+    },
 
+If you use extra namespaces besides the defaults, you have to specify them 
+
+	"wgFormattedNamespaces" : { "3302": "MyNamespace", ... }
+	 
+##############
+#
+#  Specify your endpoint in LocalSettings.php
+#
+#
 global $wgPageFormsAutocompletionURLs;
 $wgPageFormsAutocompletionURLs['autocomplete-bezugselement']
  = $wgServerHTTP . $wgScriptPath . '/api.php?action=diqa_autocomplete&format=json&substr=<substr>&property=Titel&category=Wissenselement'; //Der Name des internen Properties was die Kleinschreibung enth�lt ist wie im property-Parameter mit dem suffix "_lowercase", hier also "Titel_lowercase"
 
-global $wgFormattedNamespaces;
-$wgFormattedNamespaces[0] = '';
-$wgFormattedNamespaces[10] = 'Vorlage';
-$wgFormattedNamespaces[14] = 'Kategorie';
-$wgFormattedNamespaces[102] = 'Atttribut';
+
+
+#############
+# Optional:
+#
+#   Allows authentication against wiki using HTTP. This is sometimes necessary when 
+#	server does not allow *local* HTTPS requests.
+# 
+#      "wgServerHTTP": "http:\/\/demo.qm-wiki.net",
+#      "wgHTTPAuthForLocalProxies" : true
+#
+#
 
 ###############################################
 
