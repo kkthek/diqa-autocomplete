@@ -84,6 +84,7 @@ class Autocomplete {
         
         $params['property'] = '';
         $params['category'] = '';
+        $params['query'] = '';
         
         foreach ($keyValues as $keyValue) {
             list ($key, $value) = explode("=", $keyValue);
@@ -117,10 +118,12 @@ class Autocomplete {
         }
         
         // build SQL parameters
-        $sqlParameters = [
-            $titleLowercasePropertyID->smw_id,
-            $titlePropertyID->smw_id
-        ];
+        $sqlParameters = [];
+        
+        $sqlParameters[] = $titleLowercasePropertyID->smw_id;
+        $sqlParameters[] = $titlePropertyID->smw_id;
+        
+        list($joinsQueryParam, $whereQueryParam) = self::buildQuerySQLConstraint($params['query'], $sqlParameters);
         
         $categories = explode('||', $params['category']);
         $categoryConstraint = [];
@@ -129,6 +132,7 @@ class Autocomplete {
             $categoryConstraint[] = 'object.smw_title = ?';
         }
         $categoryConstraintSQL = implode(' OR ', $categoryConstraint);
+        
         
         $sqlParameters[] = "%$substr%";
         $sqlParameters[] = "%$substr%";
@@ -143,11 +147,12 @@ class Autocomplete {
                  JOIN smw_object_ids object ON object.smw_id = o_id
                  JOIN smw_di_blob title_filter ON subject.smw_id = title_filter.s_id AND title_filter.p_id = ?
                  JOIN smw_di_blob title ON subject.smw_id = title.s_id AND title.p_id = ?
-                 WHERE (' . $categoryConstraintSQL . ')
+                 '.join(' ', $joinsQueryParam).'
+                 WHERE (' . join(' AND ', $whereQueryParam) . ' AND ' . $categoryConstraintSQL .')
                  AND ( title_filter.o_hash LIKE ? OR title_filter.o_blob LIKE ?)';
-        
+       
         $pages = Capsule::select($sqlQuery, $sqlParameters);
-        
+      
         $results = [];
         foreach ($pages as $row) {
             $results[] = [
@@ -164,5 +169,83 @@ class Autocomplete {
         }
         
         return $results;
+    }
+    
+    /**
+     * Parses a SMW-like query [[Property::Constraint]]
+     * 
+     * Supports only Wikipage and String properties!
+     * 
+     * @param string $query SMW query
+     * @param array $sqlParameters
+     * @return string[][]
+     */
+    private static function buildQuerySQLConstraint($query, & $sqlParameters) {
+        $num = preg_match_all('/([^:[]*)::([^]]*)/',$query, $matches);
+        $where = ['true'];
+        $joins = [];
+        
+        $whereParams = [];
+        $joinParams = [];
+        
+        if ($num > 0) {
+            for($i = 0; $i < $num; $i++) {
+               $property = trim($matches[1][$i]);
+               $value = trim($matches[2][$i]);
+               $valueID = null;
+               
+               $propertyID = Capsule::table('smw_object_ids')->select('smw_id')
+               ->where('smw_title', str_replace(' ','_', $property))
+               ->where('smw_namespace', 102)
+               ->get()
+               ->first();
+               
+               if (is_null($propertyID)) {
+                   $propertyID = -1;
+               } else {
+                   $propertyID = $propertyID->smw_id;
+               }
+               
+               $mwPageID = Capsule::table('page_props')->select('pp_page')
+               ->where('pp_propname', 'displaytitle')->where('pp_value', $value)
+                ->get()
+               ->first();
+               
+               if (!is_null($mwPageID)) {
+               
+                   $mwPageTitle = Capsule::table('page')->select('page_title', 'page_namespace')
+                   ->where('page_id', $mwPageID->pp_page)
+                    ->get()
+                   ->first();
+                   
+                   $valueID = Capsule::table('smw_object_ids')->select('smw_id')
+                   ->where('smw_title', $mwPageTitle->page_title)
+                   ->where('smw_namespace', $mwPageTitle->page_namespace)
+                   ->get()
+                   ->first();
+               }
+               
+               if (!is_null($valueID)) {
+                   $valueID = $valueID->smw_id;
+               }
+               
+               $joinParams[] = $propertyID;
+               $joinParams[] = $propertyID;
+               $whereParams[] = $value;
+               $whereParams[] = $value;
+               $whereParams[] = $valueID;
+               $joins[] = "LEFT JOIN smw_di_blob prop_constraint$i ON subject.smw_id = prop_constraint$i.s_id AND prop_constraint$i.p_id = ?";
+               $joins[] = "LEFT JOIN smw_di_wikipage prop_constraint_wikipage$i ON subject.smw_id = prop_constraint_wikipage$i.s_id AND prop_constraint_wikipage$i.p_id = ?";
+               $where[] = $value == '+' ? "" : " (prop_constraint$i.o_hash = ? OR prop_constraint$i.o_blob = ? OR prop_constraint_wikipage$i.o_id = ?)";
+            }
+        }
+        
+        foreach($joinParams as $p) {
+            $sqlParameters[] = $p;
+        }
+        foreach($whereParams as $p) {
+            $sqlParameters[] = $p;
+        }
+        return [ $joins, $where ];
     }
 }

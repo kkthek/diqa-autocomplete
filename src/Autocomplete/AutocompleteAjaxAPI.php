@@ -30,7 +30,13 @@ class AutocompleteAjaxAPI extends \ApiBase {
 	public function execute() {
 		$params = $this->extractRequestParams ();
 		
-		$values = self::getResults ( $params );
+		try {
+		    
+		  $values = self::getACResults ( $params );
+		  
+		} catch(\Exception $e) {
+		    $this->dieUsage ( $e->getMessage() );
+		}
 		
 		// If we got back an error message, exit with that message.
 		if (! is_array ( $values )) {
@@ -51,6 +57,7 @@ class AutocompleteAjaxAPI extends \ApiBase {
 				'category' => null,
 				'concept' => null,
 				'schema' => null,
+		        'query' => null,
 				'_' => null 
 		);
 	}
@@ -62,6 +69,7 @@ class AutocompleteAjaxAPI extends \ApiBase {
 				'property' => 'Semantic property for which to search values',
 				'category' => 'Categories for which to search values (comma-separated)',
 				'concept' => 'Concept for which to search values',
+		        'query' => 'Query constraint',
 				'schema' => 'Return schema elements',
 				'_' => '' 
 		);
@@ -95,6 +103,7 @@ class AutocompleteAjaxAPI extends \ApiBase {
 		$params = [ ];
 		$params ['substr'] = '';
 		$params ['property'] = '';
+		$params ['query'] = '';
 		$params ['category'] = '';
 		$params ['concept'] = '';
 		$params ['schema'] = '';
@@ -104,7 +113,17 @@ class AutocompleteAjaxAPI extends \ApiBase {
 		}
 		
 		// get results
-		$values = self::getResults ( $params );
+	    try {
+	        
+		  $values = self::getACResults ( $params );
+		  
+		} catch(\Exception $e) {
+		    http_response_code(404);
+		    $o = new \stdClass ();
+		    $o->pfautocomplete = $values;
+		    $pageContent = $e->getMessage();
+		    return;
+		}
 		
 		// serialize to JSON
 		$o = new \stdClass ();
@@ -112,19 +131,20 @@ class AutocompleteAjaxAPI extends \ApiBase {
 		$pageContent = json_encode ( $o );
 	}
 
-	private static function getResults($params) {
+	private static function getACResults($params) {
 		$substr = $params ['substr'];
 		$property = $params ['property'];
 		$category = $params ['category'];
 		$concept = $params ['concept'];
+		$query = $params ['query'];
 		$schema = $params ['schema'];
 		
 		if (strlen ( $substr ) == 0) {
-			$this->dieUsage ( 'The substring must be specified', 'param_substr' );
+			throw new \Exception( 'The param "substr" must be specified');
 		}
 		
 		if (strlen ( $property ) == 0) {
-			$this->dieUsage ( 'The property must be specified', 'param_property' );
+		    throw new \Exception( 'The param "property" must be specified');
 		}
 		
 		if (is_null ( $substr )) {
@@ -141,20 +161,21 @@ class AutocompleteAjaxAPI extends \ApiBase {
 				$c = trim ( $c );
 				return "[[Category:$c]]";
 			}, $categories );
-			$values = self::getTitleBy ( implode ( ' OR ', $queries ), $property, $substr );
+			$values = self::getTitleBy ( implode ( ' OR ', $queries ) . $query, $property, $substr );
 		} else if (strlen ( $concept ) != 0) {
-			$values = self::getTitleBy ( "[[Concept:$concept]]", $property, $substr );
+			$values = self::getTitleBy ( "[[Concept:$concept]]" . $query, $property, $substr );
 		} else if (strlen ( $schema ) != 0) {
 			$list = explode ( ",", $schema );
 			$query = array_map ( function ($e) {
 				return "$e:+";
 			}, $list );
-			$values = self::getTitleBy ( "[[" . implode ( '||', $query ) . "]]", $property, $substr );
+			$values = self::getTitleBy ( "[[" . implode ( '||', $query ) . "]]" . $query, $property, $substr );
 		} else {
-			$values = self::getTitleBy ( "", $property, $substr );
+			$values = self::getTitleBy ( "$query", $property, $substr );
 		}
 		return $values;
 	}
+	
 
 	private static function getTitleBy($query, $property, $substr) {
 		$printout = new \SMWPrintRequest ( \SMWPrintRequest::PRINT_PROP, "$property", \SMWPropertyValue::makeUserProperty ( $property ) );
@@ -200,4 +221,3 @@ class AutocompleteAjaxAPI extends \ApiBase {
 		return $results;
 	}
 }
-	
